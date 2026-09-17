@@ -45,6 +45,8 @@ EVT 开发板确定为 **Radxa ROCK 5B+ 16GB LPDDR5**（无 12GB SKU）：真 RK
 
 **产品化路径**：EVT 先用 Joshua-Riek Ubuntu 验证全链路；量产转 Radxa CM5（同 RK3588 SoM）+ 自制底板，产品镜像自建 Yocto（meta-rockchip + meta-qt6 + 自定义 camera 层）。
 
+**软件降级预案（plan B）**：**RPi5 8GB**。若 RK3588 侧 OV9281 驱动移植或 RKNN 模型转换受阻，切换 RPi5 8GB + 2× Arducam B0224 OV9281（直插双 CSI，FSIN 飞线）+ HDMI 触控屏 + Hailo-8L AI HAT+（13 TOPS）。已知接口妥协：双摄占用全部 MIPI 口后无 DSI 可用（屏走 HDMI）；Hailo-8L 抢唯一外露 PCIe（与 NVMe 互斥）；存储退守 microSD + RAM 环形缓冲。总价约 ¥2800–3500，高于 ROCK 5B+ 方案（~¥2300–2800），不可替代优势是软件风险最低（OV9281 主线驱动 + 120fps 官方确认 + Yocto/Qt6 生态成熟）。详见 [docs/research/2026-09-17-rpi5-eval.md](docs/research/2026-09-17-rpi5-eval.md)。
+
 ### 散热与形态约束
 
 - **功耗**：RK3588 满载功耗约 6–10W，被动散热下手持形态（握持温度、续航）存疑
@@ -85,6 +87,7 @@ batana-pi/
 | 1.0-draft | 2026-09-17 | SoC 冻结为 RK3588（或 RK3576 降本版）为唯一目标，RPi5 仅作早期软件联调开发板（不出货、无 NPU、不承担性能指标）；BLE 角色纠正为 Central / GATT Client（cap 为 GATT Server/Peripheral）；UI 栈统一为 Qt6 嵌入式 Linux 构建（batana-gui 同源）；补充双目硬同步选型（OV9281/AR0234 全局快门 + FSIN 外部触发，<1µs 同步；EVT 可先用 USB3 全局快门模组）与散热/形态约束（RK3588 满载 6–10W，EVT 第一优先级实测满载 30 分钟温升/降频曲线） | 已同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | SoC/相机/显示调研完成：SoC 选型矩阵细化为 RK3588=max/pro 首选、RK3576=OV9281 档降本版、RK3566 仅 standard 档/联调开发板；确认 OV9281 双目 @120fps RAW10 带宽充足、AR0234 双目仅 RK3588 可行、MIPI DSI 5–7 寸触控屏与双摄 CSI 独立 PHY 无冲突；新增三平台共性待实测项（见 docs/research/2026-09-17-soc-camera-display.md） | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | EVT 开发板确定为 Radxa ROCK 5B+ 16GB LPDDR5（无 12GB SKU；真 RK3588、原生双 4-lane CSI、MIPI DSI、板载 BT 5.2 作 BLE Central、64-bit LPDDR5）；已知缺口列入 EVT 任务（OV9281 驱动移植、FSIN 经 40-pin PWM 飞线→转接板、主动散热、外接 IPEX 天线）；产品化路径转 Radxa CM5 SoM + 自制底板（见 docs/research/2026-09-17-rock5b-plus-eval.md） | 待同步司令塔 repos.yaml |
+| 1.0-draft | 2026-09-17 | 树莓派 5 适配调研完成：RPi5 8GB 定为软件降级预案（plan B），配置为 2× Arducam B0224 OV9281 直插双 CSI + FSIN 飞线 + HDMI 触控屏 + Hailo-8L AI HAT+（13 TOPS）；接口妥协为双摄后无 DSI、Hailo 抢唯一 PCIe、存储退守 microSD/RAM 缓冲；总价 ~¥2800–3500 高于 ROCK 5B+ 方案（见 docs/research/2026-09-17-rpi5-eval.md） | 待同步司令塔 repos.yaml |
 
 ## 许可证
 
