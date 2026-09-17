@@ -18,7 +18,7 @@ batana-pi 是 batana 棒球打击动作捕捉/分析/评价生态系统中的**�
 | 部件 | 方向 | 说明 |
 | --- | --- | --- |
 | 主控 | RK3588（或 RK3576 降本版）——唯一目标 SoC | 选型矩阵结论（详见调研报告）：**RK3588 为 max/pro 档首选**；**RK3576（6 TOPS NPU 与 RK3588 同代，ISP 16M）为 OV9281 档降本版**；**RK3566（NPU 0.8 TOPS、ISP 8M@30 触顶）仅承担 standard 档或联调开发板，不承担 max 档 ≤8s**。RPi5 仅作为早期软件联调开发板：不出货、无 NPU、不承担任何性能指标 |
-| 相机 | 双目全局快门模组（OV9281 / AR0234 方向） | 全局快门 + FSIN 外部触发硬同步（左右目同步误差 <1µs），避免卷帘快门在高速挥棒场景下的畸变。调研确认：OV9281 双目 @120fps RAW10 带宽充足（2× 2-lane，利用率 25%）；AR0234 双目仅在 RK3588（双 ISP）可行。EVT 阶段可先用 USB3 全局快门模组打通采集链路 |
+| 相机 | 双目全局快门模组（首选 **SC132GS**；**OV9281 为相机 Plan B**） | 全局快门 + FSIN 外部触发硬同步（左右目同步误差 <1µs），避免卷帘快门在高速挥棒场景下的畸变。**首选 SC132GS**（SmartSens mono 全局快门，1280×1080@120fps，Rockchip BSP 6.1 内核树内自带驱动 sc132gs.c——免移植）；**OV9281 降为相机 Plan B**（主线 ov9282.c 驱动自带 120fps 模式，若 SC132GS 拿不到 120fps 寄存器表则切换）。残余工作量：设备树 overlay（1–2 天）+ 120fps 寄存器表（需 SmartSens FAE/模组厂，EVT 第一天并行索取）+ FSIN slave 同步寄存器小改（3–5 天）。调研确认 OV9281 双目 @120fps RAW10 带宽充足（2× 2-lane，利用率 25%）。EVT 阶段可先用 USB3 全局快门模组打通采集链路。详见 [docs/research/2026-09-17-camera-sensor-selection.md](docs/research/2026-09-17-camera-sensor-selection.md) |
 | 屏幕 | 5–7" MIPI DSI 触控显示屏 | 调研确认：与双摄 CSI 为独立 PHY 无冲突（RK3588/3576/3566 均成立）；嵌入式 GUI 输出，触控交互 |
 
 ### 调研结论与待实测项
@@ -38,7 +38,7 @@ EVT 开发板确定为 **Radxa ROCK 5B+ 16GB LPDDR5**（无 12GB SKU）：真 RK
 
 **已知缺口（列入 EVT 任务）**：
 
-1. OV9281 驱动移植：BSP 6.1 内核 + 双 CAM 口 DT overlay，走 VICAP 直出 RAW10 旁路 rkaiq（预计 1–2 周）
+1. 相机驱动（SC132GS）：BSP 6.1 树内自带 sc132gs.c（免移植），剩余工作为设备树 overlay（1–2 天）+ 120fps 寄存器表（SmartSens FAE/模组厂索取，EVT 第一天并行启动）+ FSIN slave 同步寄存器小改（3–5 天）；拿不到 120fps 模式表则切相机 Plan B OV9281（主线 ov9282.c 自带 120fps）
 2. FSIN 硬同步：EVT 经 40-pin 硬件 PWM（如 PIN_32/PWM14_M0）杜邦线飞线接两模组 FSIN；产品化并入 CSI 转接板
 3. 主动散热：官方 Heatsink 6240B 或铝合金外壳；被动散热会撞 5W sustainable-power 功耗墙导致 NPU 满载降频
 4. 外接 IPEX 天线：RTL8852BE 仅 IPEX 座，结构需预留天线位
@@ -88,6 +88,7 @@ batana-pi/
 | 1.0-draft | 2026-09-17 | SoC/相机/显示调研完成：SoC 选型矩阵细化为 RK3588=max/pro 首选、RK3576=OV9281 档降本版、RK3566 仅 standard 档/联调开发板；确认 OV9281 双目 @120fps RAW10 带宽充足、AR0234 双目仅 RK3588 可行、MIPI DSI 5–7 寸触控屏与双摄 CSI 独立 PHY 无冲突；新增三平台共性待实测项（见 docs/research/2026-09-17-soc-camera-display.md） | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | EVT 开发板确定为 Radxa ROCK 5B+ 16GB LPDDR5（无 12GB SKU；真 RK3588、原生双 4-lane CSI、MIPI DSI、板载 BT 5.2 作 BLE Central、64-bit LPDDR5）；已知缺口列入 EVT 任务（OV9281 驱动移植、FSIN 经 40-pin PWM 飞线→转接板、主动散热、外接 IPEX 天线）；产品化路径转 Radxa CM5 SoM + 自制底板（见 docs/research/2026-09-17-rock5b-plus-eval.md） | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | 树莓派 5 适配调研完成：RPi5 8GB 定为软件降级预案（plan B），配置为 2× Arducam B0224 OV9281 直插双 CSI + FSIN 飞线 + HDMI 触控屏 + Hailo-8L AI HAT+（13 TOPS）；接口妥协为双摄后无 DSI、Hailo 抢唯一 PCIe、存储退守 microSD/RAM 缓冲；总价 ~¥2800–3500 高于 ROCK 5B+ 方案（见 docs/research/2026-09-17-rpi5-eval.md） | 待同步司令塔 repos.yaml |
+| 1.0-draft | 2026-09-17 | 相机选型调研完成：双目相机首选改为 SC132GS（SmartSens mono 全局快门 1280×1080@120fps，BSP 6.1 树内自带驱动免移植），OV9281 降为相机 Plan B（主线 ov9282.c 自带 120fps）；残余工作量 overlay 1–2 天 + 120fps 寄存器表（SmartSens FAE，EVT 第一天并行索取）+ FSIN slave 同步小改 3–5 天；EVT 任务「OV9281 驱动移植」相应改为 SC132GS overlay/模式表/FSIN 同步（见 docs/research/2026-09-17-camera-sensor-selection.md） | 待同步司令塔 repos.yaml |
 
 ## 许可证
 
