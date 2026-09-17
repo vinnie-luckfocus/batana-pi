@@ -17,9 +17,20 @@ batana-pi 是 batana 棒球打击动作捕捉/分析/评价生态系统中的**�
 
 | 部件 | 方向 | 说明 |
 | --- | --- | --- |
-| 主控 | RK3588（或 RK3576 降本版）——唯一目标 SoC | RK3588 提供 NPU 加速，适配 RKNN 后端；RK3576 为降本备选。RPi5 仅作为早期软件联调开发板：不出货、无 NPU、不承担任何性能指标 |
-| 相机 | 双目全局快门模组（OV9281 / AR0234 方向） | 全局快门 + FSIN 外部触发硬同步（左右目同步误差 <1µs），避免卷帘快门在高速挥棒场景下的畸变；EVT 阶段可先用 USB3 全局快门模组打通采集链路 |
-| 屏幕 | 5–7" 触控显示屏 | 嵌入式 GUI 输出，触控交互 |
+| 主控 | RK3588（或 RK3576 降本版）——唯一目标 SoC | 选型矩阵结论（详见调研报告）：**RK3588 为 max/pro 档首选**；**RK3576（6 TOPS NPU 与 RK3588 同代，ISP 16M）为 OV9281 档降本版**；**RK3566（NPU 0.8 TOPS、ISP 8M@30 触顶）仅承担 standard 档或联调开发板，不承担 max 档 ≤8s**。RPi5 仅作为早期软件联调开发板：不出货、无 NPU、不承担任何性能指标 |
+| 相机 | 双目全局快门模组（OV9281 / AR0234 方向） | 全局快门 + FSIN 外部触发硬同步（左右目同步误差 <1µs），避免卷帘快门在高速挥棒场景下的畸变。调研确认：OV9281 双目 @120fps RAW10 带宽充足（2× 2-lane，利用率 25%）；AR0234 双目仅在 RK3588（双 ISP）可行。EVT 阶段可先用 USB3 全局快门模组打通采集链路 |
+| 屏幕 | 5–7" MIPI DSI 触控显示屏 | 调研确认：与双摄 CSI 为独立 PHY 无冲突（RK3588/3576/3566 均成立）；嵌入式 GUI 输出，触控交互 |
+
+### 调研结论与待实测项
+
+SoC/相机/显示屏接口调研已完成，完整测算与来源见 [docs/research/2026-09-17-soc-camera-display.md](docs/research/2026-09-17-soc-camera-display.md)。
+
+**待实测项（三平台共性）**：
+
+1. 120fps RAW 直通/VICAP 采集的官方支持确认
+2. FSIN 硬同步帧配对精度（Rockchip V4L2 管线下）
+3. RK3566 RKNN 对 BlazePose/MediaPipe 模型的算子覆盖率
+4. BlazePose 各变体 GFLOPs 实测（M0 用 RKNN 模型分析工具）
 
 ### 散热与形态约束
 
@@ -59,6 +70,7 @@ batana-pi/
 | 版本 | 日期 | 变更内容 | 同步 |
 | --- | --- | --- | --- |
 | 1.0-draft | 2026-09-17 | SoC 冻结为 RK3588（或 RK3576 降本版）为唯一目标，RPi5 仅作早期软件联调开发板（不出货、无 NPU、不承担性能指标）；BLE 角色纠正为 Central / GATT Client（cap 为 GATT Server/Peripheral）；UI 栈统一为 Qt6 嵌入式 Linux 构建（batana-gui 同源）；补充双目硬同步选型（OV9281/AR0234 全局快门 + FSIN 外部触发，<1µs 同步；EVT 可先用 USB3 全局快门模组）与散热/形态约束（RK3588 满载 6–10W，EVT 第一优先级实测满载 30 分钟温升/降频曲线） | 已同步司令塔 repos.yaml |
+| 1.0-draft | 2026-09-17 | SoC/相机/显示调研完成：SoC 选型矩阵细化为 RK3588=max/pro 首选、RK3576=OV9281 档降本版、RK3566 仅 standard 档/联调开发板；确认 OV9281 双目 @120fps RAW10 带宽充足、AR0234 双目仅 RK3588 可行、MIPI DSI 5–7 寸触控屏与双摄 CSI 独立 PHY 无冲突；新增三平台共性待实测项（见 docs/research/2026-09-17-soc-camera-display.md） | 待同步司令塔 repos.yaml |
 
 ## 许可证
 

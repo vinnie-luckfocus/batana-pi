@@ -45,3 +45,4 @@ ble-protocol（由 **batana-cap 仓库定义**）规定：**batana-cap 是 GATT 
 | 版本 | 日期 | 变更内容 | 同步 |
 | --- | --- | --- | --- |
 | 1.0-draft | 2026-09-17 | 初版定稿：补充治理头部（版本/归属/消费方/变更记录）；纠正 BLE 角色为 Central / GATT Client（cap 为 GATT Server/Peripheral，订阅 IMU Stream、读写控制命令特征）；明确本仓库为 calibration-data 契约 owner，core 消费并将格式引用进 session-schema 的 calibration 字段 | 已同步司令塔 repos.yaml |
+| 1.0-draft | 2026-09-17 | SoC/相机/显示调研完成（见 docs/research/2026-09-17-soc-camera-display.md）；契约内容本身不变 | 待同步司令塔 repos.yaml |
