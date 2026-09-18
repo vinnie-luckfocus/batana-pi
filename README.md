@@ -60,6 +60,16 @@ EVT 开发板确定为 **Radxa ROCK 5B+ 16GB LPDDR5**（无 12GB SKU）：真 RK
 - **EVT 第一优先级实测**：满载 30 分钟温升曲线与降频（thermal throttling）曲线，用实测数据决定最终形态为手持还是桌面/三脚架
 - **当前默认**：桌面支架形态优先，手持形态仅预留电池与结构空间，待 EVT 热实测后冻结
 
+### 外观与外壳（ID/MD）
+
+batana-pi 不只交付电路与固件，**外观设计与外壳制作在本仓正式立项**，随 EVT/DVT/PVT 阶段推进：
+
+- **EVT（结构原型，无正式外壳）**：开发板 + 相机模组裸板验证，结构件只要求"能固定、能架设"——2020 铝型材 / 3D 打印相机条支架（保证基线刚性）+ 标准 1/4" 三脚架螺口 + 球场围栏挂钩，覆盖打击笼与球场现场架设场景
+- **DVT（外观 ID + 外壳工程）**：外观工业设计（形态 / 材质 / 配色；桌面三脚架 vs 手持由 EVT 热实测冻结后定稿）；外壳结构与散热一体化设计（结构导热到外壳或风道、IPEX 天线外置位、DSI 屏装配与触控开窗、相机条基线刚性与标定保持、快拆 / 支架接口）；DFM 评估（3D 打印 → CNC 手板 → 模具决策）
+- **PVT**：外壳模具 / 工艺与良率验证
+
+结构硬约束（继承调研结论）：RK3588 满载 6–10W，外壳必须承担散热路径；RTL8852BE 仅 IPEX 座，天线必须外置；相机基线在运输 / 磕碰后须保持标定有效（刚性结构 + 软件侧标定失效检测）。
+
 ## 与生态其他仓库的关系
 
 - **batana-core**：提供 batana-runtime 推理运行时（RKNN/NPU 后端），本仓库负责将其打包部署到设备；分析算法本身不在本仓库实现
@@ -72,15 +82,15 @@ EVT 开发板确定为 **Radxa ROCK 5B+ 16GB LPDDR5**（无 12GB SKU）：真 RK
 
 硬件开发按标准三阶段推进，工程文件分目录管理：
 
-- **EVT（工程验证）**（`hardware/evt/`）：验证原理图与核心功能，快速迭代，里程碑 P3 产出 EVT 样机 + 软件栈 v0.1；EVT 第一优先级完成满载 30 分钟热实测
-- **DVT（设计验证）**（`hardware/dvt/`）：冻结设计、小批量试产验证，里程碑 P5 产出 DVT 小批量
+- **EVT（工程验证）**（`hardware/evt/`）：验证原理图与核心功能，快速迭代，里程碑 P3 产出 EVT 样机 + 软件栈 v0.1；EVT 第一优先级完成满载 30 分钟热实测；**EVT 原型形态 = 开发板 + 相机模组 + 脚架/围栏挂钩支架（无正式外壳）**
+- **DVT（设计验证）**（`hardware/dvt/`）：冻结设计、小批量试产验证，里程碑 P5 产出 DVT 小批量；**外观 ID 与外壳工程在 DVT 冻结**（散热一体化、DFM 评估，见"外观与外壳"）
 - **PVT（生产验证）**（`hardware/pvt/`）：量产工艺与良率验证，面向正式投产
 
 ## 目录结构
 
 ```
 batana-pi/
-├── hardware/        # 原理图/PCB/结构（EVT→DVT→PVT 分目录）
+├── hardware/        # 原理图/PCB/结构·外壳（EVT→DVT→PVT 分目录；EVT=支架原型，DVT=外观ID+外壳）
 ├── firmware/        # U-Boot/内核/设备树/镜像构建
 ├── services/        # capture-service（双目同步）、calibration、ota、power
 ├── deploy/          # runtime 打包与系统集成
@@ -91,6 +101,7 @@ batana-pi/
 
 | 版本 | 日期 | 变更内容 | 同步 |
 | --- | --- | --- | --- |
+| 1.0-draft | 2026-09-18 | 新增「外观与外壳（ID/MD）」工作线：EVT 原型形态定为开发板 + 相机模组 + 脚架/围栏挂钩支架（无正式外壳，铝型材/3D 打印相机条保基线刚性 + 1/4" 三脚架螺口）；DVT 冻结外观 ID 与外壳工程（散热一体化、IPEX 天线位、DSI 屏装配、DFM：3D 打印→CNC→模具）；硬件阶段管理与目录结构同步更新 | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | SoC 冻结为 RK3588（或 RK3576 降本版）为唯一目标，RPi5 仅作早期软件联调开发板（不出货、无 NPU、不承担性能指标）；BLE 角色纠正为 Central / GATT Client（cap 为 GATT Server/Peripheral）；UI 栈统一为 Qt6 嵌入式 Linux 构建（batana-gui 同源）；补充双目硬同步选型（OV9281/AR0234 全局快门 + FSIN 外部触发，<1µs 同步；EVT 可先用 USB3 全局快门模组）与散热/形态约束（RK3588 满载 6–10W，EVT 第一优先级实测满载 30 分钟温升/降频曲线） | 已同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | SoC/相机/显示调研完成：SoC 选型矩阵细化为 RK3588=max/pro 首选、RK3576=OV9281 档降本版、RK3566 仅 standard 档/联调开发板；确认 OV9281 双目 @120fps RAW10 带宽充足、AR0234 双目仅 RK3588 可行、MIPI DSI 5–7 寸触控屏与双摄 CSI 独立 PHY 无冲突；新增三平台共性待实测项（见 docs/research/2026-09-17-soc-camera-display.md） | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | EVT 开发板确定为 Radxa ROCK 5B+ 16GB LPDDR5（无 12GB SKU；真 RK3588、原生双 4-lane CSI、MIPI DSI、板载 BT 5.2 作 BLE Central、64-bit LPDDR5）；已知缺口列入 EVT 任务（OV9281 驱动移植、FSIN 经 40-pin PWM 飞线→转接板、主动散热、外接 IPEX 天线）；产品化路径转 Radxa CM5 SoM + 自制底板（见 docs/research/2026-09-17-rock5b-plus-eval.md） | 待同步司令塔 repos.yaml |
