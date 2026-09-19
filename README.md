@@ -93,8 +93,9 @@ batana-pi 不只交付电路与固件，**外观设计与外壳制作在本仓�
 ```
 batana-pi/
 ├── hardware/        # 原理图/PCB/结构·外壳（EVT→DVT→PVT 分目录；EVT=支架原型，DVT=外观ID+外壳）
-├── firmware/        # U-Boot/内核/设备树/镜像构建
+├── firmware/        # U-Boot/内核/设备树/镜像构建（firmware/yocto/ 为产品镜像 Yocto 层 meta-batana 骨架）
 ├── services/        # capture-service（双目同步）、calibration、ota、power
+├── spikes/          # 阶段门验证工具：uvc-probe（相机冒烟）、rknn-benchmark（NPU 基准）
 ├── deploy/          # runtime 打包与系统集成
 └── docs/contracts/  # 与 core/gui 的接口适配说明
 ```
@@ -103,6 +104,7 @@ batana-pi/
 
 | 版本 | 日期 | 变更内容 | 同步 |
 | --- | --- | --- | --- |
+| 1.0-draft | 2026-09-19 | M0 G0 硬件到货即用工具链就绪：新增 spikes/uvc-probe（UVC 相机冒烟探针：list_formats 枚举格式判定 2560×800@120 无压缩可达性，capture_smoke 十分钟抓帧统计掉帧率<0.1%/帧间隔抖动 p50/p95/max/MONO8 双目切分样张，macOS+Linux 通用，已用 FaceTime 相机 10 秒冒烟验证）；新增 spikes/rknn-benchmark（BlazePose TFLite→RKNN 转换 + 板端 NPU 基准 p95≤20ms 判定 + 模型下载脚本；**风险 R3 实测关闭：rknn-toolkit2 在 macOS arm64 无可用 wheel，v2.2.0 仅 manylinux x86_64、v2.2.1 仅 cp38，转换 fallback 至 x86 Linux 容器/云主机**）；新增 firmware/yocto/meta-batana 层骨架（scarthgap + meta-rockchip + meta-qt6，目标 ROCK 5B+，Qt6 eglfs，batana-gui 配方桩） | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-19 | RK3576 降本线调研完成：泰山派3M（¥899）定为并行验证板，两个 M0 验收项（UVC 120fps 掉帧 <0.1%、NPU 单帧 ≤20ms）双达标则 standard/pro 档切 RK3576；max 档基准板仍锁定 RK3588（见 docs/research/2026-09-19-rk3576-taishanpi-usb-stereo-eval.md）。拍摄环境调研完成：路线 B 甜点 2.5m、路线 A 距离-精度冲突列为 EVT 第一实测项；击球区需补光至 ≥10,000 lux（现有笼灯差 15–50 倍）、无频闪恒流驱动、帧间波动 <2%；标定板修订为 A0/格子 90–120mm（见 docs/research/2026-09-19-stereo-shooting-environment.md） | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-18 | 新增「外观与外壳（ID/MD）」工作线：EVT 原型形态定为开发板 + 相机模组 + 脚架/围栏挂钩支架（无正式外壳，铝型材/3D 打印相机条保基线刚性 + 1/4" 三脚架螺口）；DVT 冻结外观 ID 与外壳工程（散热一体化、IPEX 天线位、DSI 屏装配、DFM：3D 打印→CNC→模具）；硬件阶段管理与目录结构同步更新 | 待同步司令塔 repos.yaml |
 | 1.0-draft | 2026-09-17 | SoC 冻结为 RK3588（或 RK3576 降本版）为唯一目标，RPi5 仅作早期软件联调开发板（不出货、无 NPU、不承担性能指标）；BLE 角色纠正为 Central / GATT Client（cap 为 GATT Server/Peripheral）；UI 栈统一为 Qt6 嵌入式 Linux 构建（batana-gui 同源）；补充双目硬同步选型（OV9281/AR0234 全局快门 + FSIN 外部触发，<1µs 同步；EVT 可先用 USB3 全局快门模组）与散热/形态约束（RK3588 满载 6–10W，EVT 第一优先级实测满载 30 分钟温升/降频曲线） | 已同步司令塔 repos.yaml |

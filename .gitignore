@@ -1,0 +1,6 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+spikes/uvc-probe/capture_out/
+spikes/rknn-benchmark/models/
